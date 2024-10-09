@@ -1,0 +1,53 @@
+{% load static get_results %}
+
+{% for quiz in page_obj %}
+    <div class="col-md-4 col-ld-3 {% if forloop.last %}{% else %}mb-3{% endif %}" {% if forloop.last %}hx-trigger="revealed" {% if not page_obj.has_next %} hx-swap="outerHTML" {% else %} hx-get="/tests/?page={{ page_obj.number|add:1 }}" {% endif %} hx-swap="afterend"{% endif %}>
+        <div class="card" style="cursor: pointer;">
+            <a data-bs-toggle="modal" data-bs-target="#exampleModal{{quiz.id}}">
+                <div class="card-body">
+                    <div style="border-left: 3px solid #55c330; padding-left: 10px;">
+                        <h2>{{ quiz.title }}</h2>
+                        
+                        <p>{{ quiz.questions.count }} dona test. {{quiz.results.count}} marta ishlangan</p>
+                        {% for scince in quiz.get_scinces %}
+                        <p class="badge bg-primary">{{ scince }}</p> 
+                        {% endfor %}
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="modal fade" id="exampleModal{{quiz.id}}" tabindex="-1" aria-labelledby="exampleModalLabel{{quiz.id}}"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content p-3">
+                    <div class="modal-header border-bottom-0">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel{{quiz.id}}">{{quiz.title}}</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>{{ quiz.description }}</p>
+                        <p>Test davomiyligi: {{ quiz.countinuis_time|time:"H:i:s" }}</p>
+                        <p>Savollar soni: {{ quiz.questions.count }}</p>
+                        {% if user.is_authenticated %}
+                        <p>Natijalaringiz:</p>
+                        <div class="px-3">
+                            {% for result in quiz|get_results:user %}
+                            <p>{{ result.score}} ball - {{ result.time_token }}</p>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center">
+                            <a href="/tests/{{quiz.id}}" class="btn btn-success" >Testni ishlash</a>
+                            {% if quiz|get_results:user %}<a href="/tests/{{quiz.id}}/result/" class="btn btn-success" >Natijam</a>{% endif %}
+                        </div>
+                        {% else %}
+                        <div class="text-center">
+                            <a class="btn btn-primary" href="/login/?next={{request.path}}">Tizimga kirish</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}

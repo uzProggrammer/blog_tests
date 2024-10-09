@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{quiz.title}}
+{% endblock title %}
+
+{% block content %}
+<style>
+    *{
+        user-select: none !important;
+    }
+    p{
+        display: inline;
+    }
+</style>
+<div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                Rostdan ham ushbu testni yakunlamoqchimisiz?
+                <div class="mt-3">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yopish</button>
+                <button type="button" class="btn btn-primary" id="submit_btn"  data-bs-dismiss="modal">Yakunlash</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3">
+        <div class="card p-3"
+            style="position: sticky !important;position: -webkit-sticky !important;top: 65px;z-index: 1;">
+            <button id="timer" class="btn btn-outline-success mb-3">Loading...</button>
+            <div>
+                {% for question in questions %}
+                <a id="btn-{{question.id}}" href="#test-{{question.id}}"
+                    class="btn btn-outline-primary mb-3">{{forloop.counter}}</a>
+                {% endfor %}
+            </div>
+            <button class="btn btn-primary mb-3 mt-3" type="button" data-bs-toggle="modal"
+                data-bs-target="#exampleModal1">Yakunlash</button>
+            
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="card p-3">
+            <h2 class="text-center mb-3">{{quiz.title}}</h2>
+            {% for question in questions %}
+            <section id="test-{{question.id}}"
+                class="{% if forloop.counter != questions.count %}border-bottom{% endif %} mb-3">
+                <div class="question" style="display: flex;align-items: center;gap: 10px;">
+                    <div>{{forloop.counter}}.</div>
+                    <div>{{question.text|safe}}</div>
+                </div>
+                {% if question.variants %}
+                <div class="p-2">
+                    {% for variant in question.variants.all %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="{{question.id}}" id="variant-{{variant.id}}"
+                            required value="{{variant.id}}">
+                        <label class="form-check-label" for="variant-{{variant.id}}">{{variant.text|safe}}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </section>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="error_modal" class="modal" tabindex="-1"  data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-center text-danger">
+                        Ogohlantirish
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p id="error_modal_body">
+                        Test jarayonida test oynasidan chiqsangiz balingiz ayrilishi mumkin!
+                    </p>
+                    <div class="text-center">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yopish</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="info_modal" class="modal" tabindex="-1"  data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-center text-danger">
+                        Test yuborildi
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Iltimos natijani kuting!
+                    </p>
+                    <div class="text-center">
+                        <button class="btn btn-primary" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                            <span role="status">Tekshirilmoqda...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tests = {}
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            console.log(radio.name, radio.value)
+            tests[radio.name] = radio.value;
+            document.querySelectorAll('a[href="#test-' + radio.name + '"]').forEach(link => {
+                link.classList.add('btn-primary');
+                link.classList.remove('btn-outline-primary');
+            });
+        });
+    });
+
+    function calculateEndTime(start_time, duration) {
+        const startDate = new Date(start_time);
+        const [hours, minutes, seconds] = duration.split(':').map(Number);
+
+        startDate.setHours(startDate.getHours() + hours);
+        startDate.setMinutes(startDate.getMinutes() + minutes);
+        startDate.setSeconds(startDate.getSeconds() + seconds);
+
+        return startDate;
+    }
+
+    function startTimer(start_time, duration) {
+        const endTime = calculateEndTime(start_time, duration);
+        function updateTimer() {
+            const now = new Date();
+            const timeLeft = endTime - now;
+
+            if (timeLeft > 0) {
+                const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+                const seconds = Math.floor((timeLeft / 1000) % 60);
+
+                document.getElementById('timer').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                document.getElementById('timer').textContent = "Time's up!";
+                clearInterval(timerInterval);
+            }
+        }
+
+        const timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    window.onload = function() {
+        const start_time = "{{ start_time.date_created|date:'c' }}";
+        const duration = "{{ quiz.countinuis_time|date:'H:i:s' }}";
+
+        startTimer(start_time, duration);
+    };
+    document.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+    });
+
+    
+</script>
+{% endblock content %}
+
+{% block js %}
+    <script>
+        var modal1 = new bootstrap.Modal(document.getElementById('error_modal'));
+        window.addEventListener('blur', e=>{
+            e.preventDefault();
+            modal1.show();
+        })
+
+        function sendData(){
+            if(Object.values(tests).length!==parseInt("{{questions.count}}")){
+                document.getElementById('error_modal_body').innerHTML = "Testni yakunlash uchun barcha variantlarni tanlang.";
+                var modal2 = new bootstrap.Modal(document.getElementById('error_modal'));
+                modal2.show();
+                return;
+            }
+            var modal3 = new bootstrap.Modal(document.getElementById('info_modal'));
+            modal3.show();
+            tests['csrfmiddlewaretoken'] = "{{ csrf_token }}";
+            $.ajax({
+                url: "/tests/{{quiz.id}}/submit/",
+                type: "POST",
+                data: tests,
+                success: function(response) {
+                    location.href = `/tests/{{quiz.id}}/result/${response.result}/`;
+                },
+                error: function(response) {
+                    modal3.hide()
+                    document.getElementById('error_modal_body').innerHTML = "Tizimda xatolik yuz berdi! Iltimos adminlarga murojat qiling.";
+                    var modal2 = new bootstrap.Modal(document.getElementById('error_modal'));
+                    modal2.show();
+                }
+            });
+        }
+        document.querySelector('#submit_btn').addEventListener('click', sendData);
+    </script>
+{% endblock js %}

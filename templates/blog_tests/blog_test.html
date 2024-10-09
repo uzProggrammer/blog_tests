@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% load get_results %}
+
+{% block title %}
+    {{blog_test.title}}
+{% endblock title %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card p-3">
+            <h5 class="text-center">{{blog_test.title}}</h5>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Test nomi</th>
+                        <td>{{blog_test.title}}</td>
+                    </tr>
+                    <tr>
+                        <th>Holati</th>
+                        <td>{{blog_test.status}}</td>
+                    </tr>
+                    {% if blog_test.status == 'Boshlanmagan' %}
+                    <tr>
+                        <th>Boshlanish vaqti</th>
+                        <td>{{blog_test.start_date}}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <th>Tugash vaqti</th>
+                        <td>{{blog_test.end_date}}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+            <div class="mt-3">
+                <b>Qoidalar!</b><br>
+                Salom Dunyo
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5 class="mb-2">Savollar</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    Test davomiyligi:
+                    <p>{{blog_test.countinuis_time|date:"H:i:s"}}</p>
+                </div>
+                <div class="col-md-6">
+                    Savollar soni:
+                    <p>{{blog_test.question_count}}</p>
+                </div>
+                <div class="col-md-6">
+                    Fanlar:
+                    <p>
+                        {% for quiz in blog_test.quizs.all %}
+                            {{quiz.title}}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+            {% if user.is_authenticated %}
+            {% if blog_test.status == 'Boshlangan' %}
+                {% if blog_test|is_ended:user %}
+                    <a href="/blog-tests/{{blog_test.id}}/results/" class="btn btn-primary">Natijalar</a>
+                {% else %}
+                    <a class="btn btn-primary" href="/blog-tests/{{blog_test.id}}/quizes/">Testni boshlash</a>
+                {% endif %}
+            {% else %}
+                <a href="/blog-tests/{{blog_test.id}}/results/" class="btn btn-primary">Natijalar</a>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock title %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    {% include 'colors.html' %}
+
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+            <div class="container">
+                <a class="navbar-brand" href="#">Testlar</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
+                    aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                {% if user.is_authenticated %}
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar"
+                    aria-labelledby="offcanvasNavbarLabel">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Manu</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <ul class="navbar-nav justify-content-end flex-grow-1 pe-3 align-items-center">
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="/" id="home_link">Bosh sahifa</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/tests/"  id="tests_link">Testlar</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/blog-tests/"  id="blog_tests_link">Blog testlar</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                    <img src="{% if user.image %}{{user.image.url}}{% else %}https://banner2.cleanpng.com/20180816/syp/78f04442f328b673e733de33b6c8a781.webp{% endif %}" class="rounded-circle" width="30" height="30" alt="sss"> {{user.full_name}}
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item text-danger" href="/logout/">Chiqib ketish</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                {% else %}
+                <div class="navbar-text">
+                    <a href="/login/" class="btn btn-outline-success me-2">Kirish</a>
+                    <a href="/register/" class="btn btn-outline-primary me-2">Ro'yxatdan o'tish</a>
+                </div>
+                {% endif %}
+            </div>
+        </nav>
+
+        <div style="margin-top: 80px;">
+            {% block content %}
+
+            {% endblock content %}
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+        integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        if(location.href.includes('/tests/')){
+            document.querySelector('#tests_link').classList.add('active');
+            document.querySelector('#home_link').classList.remove('active');
+        } if (location.href.includes('/blog-tests/')) {
+            document.querySelector('#blog_tests_link').classList.add('active');
+            document.querySelector('#home_link').classList.remove('active');
+        }
+    </script>
+
+    <script>
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    </script>
+
+    {% block js %}
+    {% endblock js %}
+</body>
+
+</html>

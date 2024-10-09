@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Natijam
+{% endblock title %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h2>Natijam</h2>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div>Test nomi: </div>
+                        <b>{{ quiz.title }}</b>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div>To'gri javoblar: </div>
+                        <b class="text-success">{{ result.correct_answers }}</b>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div>Noto'gri javoblar: </div>
+                        <b class="text-danger">{{ result.wrong_answers }}</b>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div>Sarflangan vaqt: </div>
+                        <b>{{ result.time_token }}</b>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div>Eng yaxshi natijangiz:</div>
+                        <b>{{top_score.score}} b, {{top_score.time_token}}</b>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div>Eng yomon natijangiz:</div>
+                        <b>{{last_score.score}} b, {{last_score.time_token}}</b>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card p-3">
+                <h2 class="mb-4">Belgilagan javoblaringiz:</h2>
+                <div>
+                    {% for answer in result.answers.all %}
+                        <button data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{% if answer.is_correct %}To'gri{% else %}Noto'gri{% endif %}" class="btn btn-lg me-3 mb-3 {% if answer.is_correct %}btn-success{% else %}btn-danger{% endif %}">{{forloop.counter}}</button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
