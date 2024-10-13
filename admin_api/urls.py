@@ -17,6 +17,7 @@ urlpatterns = [
     path('tests/create/', views.create_quiz_api),
     path('tests/<int:pk>/results/', views.results_api),
     path('tests/<int:pk>/results/<int:pk1>/', views.result_api),
+    path('tests/<int:pk>/upload-docx/', views.create_questions_with_docx),
 
 
     path('users/', users_api.all_users_api),

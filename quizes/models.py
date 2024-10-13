@@ -12,6 +12,7 @@ class Quiz(models.Model):
     is_public = models.BooleanField(default=False)
 
     scince = models.TextField(max_length=200)
+    docx_file = models.FileField(upload_to='quizes/docx_files', null=True, blank=True)
 
     def get_scinces(self):
         return self.scince.split()
@@ -23,6 +24,7 @@ class Question(models.Model):
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     ball = models.FloatField(default=0)
+
 
     def __str__(self):
         return self.text

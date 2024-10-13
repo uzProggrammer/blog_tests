@@ -1,9 +1,13 @@
 import json
+import os
+import re
 from django.http import HttpRequest
+from numpy import delete
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAdminUser, AllowAny
+from admin_api.docx_complie import to_dict_question
 from admin_api.models import AdminLog
 from quizes.models import Question, Quiz, Result, Variant
 from users import admin
@@ -77,6 +81,51 @@ def get_test_api(request: HttpRequest, pk: int):
     questions_data = TestSerializer(questions, many=True).data
     return Response({'status': "ok", 'data':test_data,"questions_data":questions_data})
 
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def create_questions_with_docx(request: HttpRequest, pk: int):
+    quiz = get_object_or_404(Quiz, pk=pk)
+    if 'file' not in request.FILES:
+        return Response({'status':"error", 'error':"Iltimos faylni tanlang!"})
+    file = request.FILES['file']
+    if not file.name.endswith('.docx') and not file.content_type.endswith('.doc'):
+        return Response({'status':"error", 'error':"Fayl formati noto'g'ri!"})
+    try:
+        from docx import Document
+    except ImportError:
+        return Response({'status':"error", 'error':"Docx modulu topilmadi!"})
+    quiz.docx_file = file
+    quiz.save()
+    try:
+        data = to_dict_question(quiz.docx_file.path)
+    except:
+        return Response({'status':"error", 'error':"Iltimos testlarni shablonga moslashtirilganiga ishonch hosil qiling!"})
+    i=0
+    if data:
+        quiz.questions.all().delete()
+    for question in data[0]:
+        tozalangan_matn = re.sub(r'^\d+\.', '', question['question'])
+        question_obj = Question.objects.create(
+            quiz=quiz,
+            text=tozalangan_matn,
+            ball=float(data[2][i])
+        )
+        j = 'A'
+        for variant in question['answers']:
+            Variant.objects.create(
+                text=variant,
+                is_correct=data[1][i]==j,
+                question=question_obj,
+                quiz=quiz,
+                
+            )
+            j = chr(ord(j) + 1)
+        i+=1
+
+    os.remove(quiz.docx_file.path)
+    quiz.docx_file = None
+    quiz.save()
+    return Response({'status': "ok"})
 
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
