@@ -3,18 +3,10 @@ import re
 import mammoth, pprint
 
 
-def convert_image(image):
-    with image.open() as image_bytes:
-        encoded_src = base64.b64encode(image_bytes.read()).decode("ascii")
-
-    return {
-        "src": "data:{0};base64,{1}".format(image.content_type, encoded_src)
-    }
-
 def get_html_content(docx):
     html_content = ''
     with open(docx, "rb") as docx_file:
-        result = mammoth.convert_to_html(docx_file, convert_image=mammoth.images.img_element(convert_image))
+        result = mammoth.convert_to_html(docx_file)
         html_content = result.value
     return html_content
 
