@@ -30,22 +30,6 @@
             </div>
         </div>
     </div>
-    <footer class="bg-dark text-center text-lg-start p-3 position-fixed bottom-0 w-100 text-white" style="margin-top: 40px;"></footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    &copy; 2024 Copyright: Blok testlar
-                </div>
-                <div class="col-md-6 text-end">
-                    <ul class="list-inline mb-0">
-                        <li class="list-inline-item me-3"><a href="#" style="text-decoration: none;" class="text-info">Test yaratish</a></li>
-                        <li class="list-inline-item me-3"><a href="#" style="text-decoration: none;" class="text-info">Aloqaga chiqish</a></li>
-                        <li class="list-inline-item me-3"><a href="#" style="text-decoration: none;" class="text-info">Xato xaqida xabar berish</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </footer>
 {% else %}
 <div class="card p-3">
     <h4>Boshlanmagan blok testlar</h4>
@@ -76,5 +60,29 @@
         </table>
     </div>
 </div>
+
+{% comment %}
+{% include 'chat_bot.html' %}
+{% endcomment %}
+
 {% endif %}
 {% endblock content %}
+
+{% block footer %}
+<footer class="bg-dark text-center text-lg-start p-3 position-fixed bottom-0 w-100 text-white" style="margin-top: 40px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                &copy; 2024 Copyright: Blok testlar
+            </div>
+            <div class="col-md-6 text-end">
+                <ul class="list-inline mb-0">
+                    <li class="list-inline-item me-3"><a href="#" style="text-decoration: none;" class="text-info">Test yaratish</a></li>
+                    <li class="list-inline-item me-3"><a href="#" style="text-decoration: none;" class="text-info">Aloqaga chiqish</a></li>
+                    <li class="list-inline-item me-3"><a href="#" style="text-decoration: none;" class="text-info">Xato xaqida xabar berish</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock footer %}

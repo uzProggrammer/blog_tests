@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAdminUser, AllowAny
 from admin_api.models import AdminLog
 from quizes.models import DtmResult, Question, Quiz, Result, Variant
 from users import admin
-from users.models import User
+from users.models import MessageForAdmin, User
 from .serializers import DTMResultSerializer, QuizSerializer, ResultSerializer, TestSerializer, UserSerializer, AdminLogUserSerializer
 from django.db.models import Q
 from django.utils import timezone
@@ -95,3 +95,8 @@ def get_user_dtm_results(request: HttpRequest, username: str):
 
     results_data = DTMResultSerializer(results, many=True).data
     return Response({'status':"ok", 'data':results_data})
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_messages_api(request: HttpRequest):
+    messages = MessageForAdmin.objects.all()

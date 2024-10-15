@@ -169,7 +169,11 @@
         event.preventDefault();
     });
 
-    
+    document.querySelectorAll('a').forEach(el=>{
+        if (!el.href.includes('#test-')){
+            el.href = '#';
+        }
+    })
 </script>
 {% endblock content %}
 

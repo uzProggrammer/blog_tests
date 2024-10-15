@@ -66,7 +66,7 @@ def result_view(request, id, id1):
     if request.user.is_anonymous:
         return HttpResponseRedirect(f'/login/?next=/tests/{id}/result/{id1}')
     quiz = get_object_or_404(Quiz, id=id)
-    result = get_object_or_404(Result, user=request.user, quiz=quiz, id=id1)
+    result = get_object_or_404(Result, quiz=quiz, id=id1)
     top_score = Result.objects.filter(quiz=quiz).order_by('-score', 'time').first()
     last_score = Result.objects.filter(quiz=quiz).order_by("score", '-time').first()
     return render(request, 'quizes/result.html', {'quiz': quiz,'result': result, 'top_score': top_score, 'last_score': last_score})

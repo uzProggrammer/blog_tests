@@ -20,17 +20,24 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.utils import timezone
 from django.shortcuts import render
-from users.views import login_view, logout_view,register_view,profile_view, pofile_image_update
+from users.models import MessageForAdmin
+from users.views import login_view, logout_view,register_view,profile_view, pofile_image_update, send_message_admin,read_all_messages
 from quizes.models import DTM
 
 def home(request):
     if request.user.is_authenticated:
+        messages_with_admin = MessageForAdmin.objects.filter(user=request.user)
+        messages_with_admin1 = MessageForAdmin.objects.filter(user1=request.user, is_admin_message=True)
+        messages = messages_with_admin | messages_with_admin1
+        messages = messages.order_by('created_at')
+        new_message_count = messages_with_admin1.filter(is_read=False).count()
         if request.user.guruhlar.exists():
             blog_tests = DTM.objects.filter(group=request.user.guruhlar.first(), start_date__gt=timezone.now())
             blog_tests1 = DTM.objects.filter(group=None, start_date__gt=timezone.now())
             blog_tests = blog_tests | blog_tests1
-            print(request.user.guruhlar.first())
-            return render(request, 'home.html', {'blog_tests': blog_tests})
+            return render(request, 'home.html', {'blog_tests': blog_tests, 'messages': messages,'new_message_count': new_message_count})
+        return render(request, 'home.html', {'messages': messages, 'new_message_count': new_message_count})
+        
     return render(request, 'home.html')
 
 urlpatterns = [
@@ -44,6 +51,8 @@ urlpatterns = [
     path('register/', register_view),
     path('profile/<str:username>/', profile_view),
     path('profile/<str:username>/update-image/', pofile_image_update),
+    path('send-message/', send_message_admin),
+    path('read-messages/', read_all_messages),
 ] 
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

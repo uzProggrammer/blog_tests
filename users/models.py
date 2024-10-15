@@ -27,3 +27,19 @@ class Group(models.Model):
 
     def __str__(self):
         return self.name
+    
+class MessageForAdmin(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_for_admin')
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    
+    is_admin_message = models.BooleanField(default=False)
+    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_for_user1', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Admin xabar'
+        verbose_name_plural = 'Admin xabarlar'
+
+    def __str__(self):
+        return self.user.full_name

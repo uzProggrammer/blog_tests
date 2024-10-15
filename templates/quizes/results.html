@@ -27,7 +27,7 @@
             <tbody>
                 {% for result in results %}
                 {% if result|format_result:forloop.last %}
-                    <tr>
+                    <tr style="cursor: pointer;" onclick="location.href='/tests/{{result.quiz.id}}/result/{{result.id}}/'">
                         <td>{{ forloop.counter }}</td>
                         <td>{{ result.user }}</td>
                         <td>{{ result.quiz }}</td>

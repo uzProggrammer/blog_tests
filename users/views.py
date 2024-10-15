@@ -1,10 +1,11 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth import authenticate, login, logout
 
 from quizes.models import DtmResult, Result
-from users.models import User
+from users.models import MessageForAdmin, User
 
+from django.views.decorators.csrf import csrf_exempt
 
 def login_view(request):
     if request.method == 'POST':
@@ -70,3 +71,33 @@ def pofile_image_update(requset, username):
         user.save()
         return HttpResponseRedirect('/profile/' + username + '/')
     return HttpResponseRedirect('/profile/' + username + '/')
+
+
+@csrf_exempt
+def send_message_admin(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect('/login/')
+    if request.method == 'POST':
+        data = request.POST
+        message = data.get('message')
+        message = MessageForAdmin.objects.create(message=message, user=request.user)
+        data = {
+            "user":{
+                'image': request.user.image.url if request.user.image else '',
+            },
+            'message': message.message,
+            'date': message.created_at.strftime('%H:%M'),
+            "id":message.id,
+            'user_message_id': -message.id,
+        }
+        return JsonResponse(data)
+    return HttpResponseRedirect('/')
+
+def read_all_messages(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect('/login/')
+    messages = MessageForAdmin.objects.filter(is_read=False, user1=request.user)
+    for message in messages:
+        message.is_read = True
+        message.save()
+    return HttpResponseRedirect('/')
