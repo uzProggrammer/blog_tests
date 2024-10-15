@@ -7,7 +7,10 @@
 {% endblock title %}
 
 {% block content %}
-    <h1>Natijalar</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Natijalar</h1>
+        <a href="/tests/{{quiz.id}}/results/download/" download class="btn btn-primary">Yuklab olish</a>
+    </div>
     <div class="table-responsive">
         <table class="table table-striped">
             <thead>
@@ -15,9 +18,10 @@
                     <th>#</th>
                     <th>Foydalanuvchi</th>
                     <th>Test</th>
-                    <th>Ball
-                    </th>
+                    <th>Ball</th>
                     <th>Sarflangan vaqti</th>
+                    <th>To'g'ri javoblar</th>
+                    <th>Xato javoblar</th>
                 </tr>
             </thead>
             <tbody>
@@ -29,6 +33,8 @@
                         <td>{{ result.quiz }}</td>
                         <td>{{ result.score }}</td>
                         <td>{{ result.time_token }}</td>
+                        <td>{{ result.correct_answers }}</td>
+                        <td>{{ result.wrong_answers }}</td>
                     </tr>
                     {% endif %}
                 {% endfor %}

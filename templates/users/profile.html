@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{profile.full_name}}
+{% endblock title %}
+
+{% block content %}
+    <img src="/static/images/profile_cover.jpg" alt="Profile cover" style="object-fit: cover;border-radius: 10px;filter: blur(1px);" class="bg-gradient-primary" width="100%" height="250px">
+    <div class="position-relative">
+        <div class="position-absolute" style="top: -50px;left: 10px;right: 10px;">
+            <div class="card p-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="{% if profile.image %}{{profile.image.url}}{% else %}/static/images/all.png{% endif %}" alt="Profile picture" class="rounded-circle" width="60px" height="60px">
+                            <div>
+                                <h4 class="mb-0">{{profile.full_name}}</h4>
+                                <span class="text-muted" style='font-size: 14px;'>{{profile.email}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <nav>
+                            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Ma'lumotlar</button>
+                                <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Natijalar(Testlardan)</button>
+                                <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false">Natijalar(Blok testlardan)</button>
+                            </div>
+                        </nav>
+                          
+                    </div>
+                    <div class="col-md-12 mt-3">
+                        <div class="tab-content" id="nav-tabContent">
+                            <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">
+                                {% if profile == user %}
+                                <h4 class="mb-3">Asosiy ma'lumotlar</h4>
+                                <form method="post" class="row">{% csrf_token %}
+                                    <div class="col-md-6 mb-3">
+                                        <label for="username">Foydalanuvchi nomi <span class="text-danger fw-bold">*</span></label>
+                                        <input type="text" disabled class="form-control disabled" required id="username" name="username" value="{{profile.username}}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email">Email manzili<span class="text-danger fw-bold">*</span></label>
+                                        <input type="email" class="form-control" required id="email" name="email" value="{{profile.email}}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="full_name">Ismi sharifi<span class="text-danger fw-bold">*</span></label>
+                                        <input type="text" class="form-control" required id="full_name" name="full_name" value="{{profile.full_name}}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="date_brith">Tug'ilgan kun<span class="text-danger fw-bold">*</span></label>
+                                        <input type="date" class="form-control" required id="date_brith" name="date_brith" value="{{profile.date_brith|date:"Y-m-d"}}">
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label for="jins">Jins<span class="text-danger fw-bold">*</span></label>
+                                        <select class="form-select" id="jins" name="jins" required>
+                                            <option value="Erkak" {% if profile.jins == "Erkak" %}selected{% endif %}>Erkak</option>
+                                            <option value="Ayol" {% if profile.jins == "Ayol" %}selected{% endif %}>Ayol</option>
+                                        </select>
+                                    </div>
+                                    <div class="p-3">
+                                        <span class="text-dange">{{error}}</span>
+                                    </div>
+                                    <div class="p-3">
+                                        
+                                        <button class="btn btn-primary">Saqlash</button>
+                                    </div>
+                                </form>
+                                
+                                {% else %}
+                                <h4 class="mb-3">Asosiy ma'lumotlar</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        Foydalanuvchi nomi: <br>
+                                        {{profile.username}}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        Ismi sharifi: <br>
+                                        {{profile.full_name}}
+                                    </div>
+                                    {% if profile.email %}
+                                    <div class="col-md-6 mb-3">
+                                        Email manzili: <br>
+                                        <a href="mailto:{{profile.email}}">{{profile.email}}</a>
+                                    </div>
+                                    {% endif %}
+                                    {% if profile.date_brith %}
+                                    <div class="col-md-6 mb-3">
+                                        Tug'ilgan kun: <br>
+                                        {{profile.date_brith|date:"d.m.Y"}}
+                                    </div>
+                                    {% endif %}
+                                    {% if profile.jins %}
+                                    <div class="col-md-6 mb-3">
+                                        Jins <br>
+                                        {{profile.jins}}
+                                    </div>
+                                    {% endif %}
+                                    <div class="col-md-6">
+                                        Umumiy to'plagan balli: <br>
+                                        {{profile.ball}} ball
+                                    </div>
+                                    {% if profile.guruhlar.exists %}
+                                    <div class="col-md-6">
+                                        Guruh: <br>
+                                        {{profile.guruhlar.first}}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
+                                <h4 class="mb-3">Natijalar(Testlardan)</h4>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th class="p-3">#</th>
+                                                <th class="p-3">Test nomi</th>
+                                                <th class="p-3">Ball</th>
+                                                <th class="p-3">Sarflangan vaqt</th>
+                                                <th class="p-3">Tog'ri javoblar</th>
+                                                <th class="p-3">Xato javoblar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for result in results.all %}
+                                            <tr style="cursor: pointer;" onclick="window.location.href='/tests/{{result.quiz.id}}/result/{{result.id}}/';">
+                                                <td class="p-3">{{result.id}}</td>
+                                                <td class="p-3">{{result.quiz.title}}</td>
+                                                <td class="p-3">{{result.score}}</td>
+                                                <td class="p-3">{{result.time_token}}</td>
+                                                <td class="p-3">{{result.correct_answers}}</td>
+                                                <td class="p-3">{{result.wrong_answers}}</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="6" class="text-center">Ushbu foydalanuvchi hali test bajarmagan.</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab" tabindex="0">
+                                <h4 class="mb-3">Natijalar(Blog testlardan)</h4>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th class="p-3">#</th>
+                                                <th class="p-3">Test nomi</th>
+                                                <th class="p-3">Ball</th>
+                                                <th class="p-3">Sarflangan vaqt</th>
+                                                <th class="p-3">Tog'ri javoblar</th>
+                                                <th class="p-3">Xato javoblar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for result in dtm_results.all %}
+                                            <tr style="cursor: pointer;" onclick="window.location.href='/blog-tests/{{result.dtm.id}}/result/{{result.id}}/';">
+                                                <td class="p-3">{{result.id}}</td>
+                                                <td class="p-3">{{result.dtm.title}}</td>
+                                                <td class="p-3">{{result.score}}</td>
+                                                <td class="p-3">{{result.time_token}}</td>
+                                                <td class="p-3">{{result.correct_answers}}</td>
+                                                <td class="p-3">{{result.wrong_answers}}</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="6" class="text-center">Ushbu foydalanuvchi hali blok test bajarmagan.</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

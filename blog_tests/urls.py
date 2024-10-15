@@ -18,11 +18,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-
+from django.utils import timezone
 from django.shortcuts import render
-from users.views import login_view, logout_view,register_view 
+from users.views import login_view, logout_view,register_view,profile_view
+from quizes.models import DTM
 
 def home(request):
+    if request.user.is_authenticated:
+        if request.user.guruhlar.exists():
+            blog_tests = DTM.objects.filter(group=request.user.guruhlar.first(), start_date__gt=timezone.now())
+            blog_tests1 = DTM.objects.filter(group=None, start_date__gt=timezone.now())
+            blog_tests = blog_tests | blog_tests1
+            print(request.user.guruhlar.first())
+            return render(request, 'home.html', {'blog_tests': blog_tests})
     return render(request, 'home.html')
 
 urlpatterns = [
@@ -34,6 +42,7 @@ urlpatterns = [
     path('login/', login_view),
     path('logout/', logout_view),
     path('register/', register_view),
+    path('profile/<str:username>/', profile_view),
 ] 
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

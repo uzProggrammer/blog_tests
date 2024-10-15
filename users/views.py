@@ -1,7 +1,8 @@
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.contrib.auth import authenticate, login, logout
 
+from quizes.models import DtmResult, Result
 from users.models import User
 
 
@@ -42,3 +43,20 @@ def register_view(request):
             login(request, user)
             return HttpResponseRedirect('/')
     return render(request, 'users/register.html')
+
+
+def profile_view(request, username):
+    user = get_object_or_404(User, username=username)
+    if user == request.user and request.method == 'POST':
+        if 'email' not in request.POST and 'date_brith' not in request.POST and 'jins' not in request.POST and 'full_name' not in request.POST:
+            return render(request, 'users/profile.html', {'profile': user, 'error': 'Ma\'lumotlar to\'liq to\'ldirilmagan'})
+        user.email = request.POST.get('email')
+        user.date_brith = request.POST.get('date_brith')
+        user.jins = request.POST.get('jins')
+        user.full_name = request.POST.get('full_name')
+        user.save()
+        return HttpResponseRedirect('/profile/' + username + '/')
+    
+    natijalar = Result.objects.filter(user=user)
+    dtm_results = DtmResult.objects.filter(user=user)
+    return render(request, 'users/profile.html', {'profile': user, 'results': natijalar, 'dtm_results': dtm_results})

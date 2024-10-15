@@ -1,7 +1,11 @@
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, render
 from django.http import Http404, HttpResponseRedirect, HttpResponse, JsonResponse
+
+from users.models import User
 from.models import Answer, Question, Quiz, Result, StartTime, Variant
+import pandas as pd
+
 
 # Django Pagination
 from django.core.paginator import Paginator
@@ -84,3 +88,21 @@ def results_view(request, id):
     quiz = get_object_or_404(Quiz, id=id)
     results = Result.objects.filter(quiz=quiz).order_by('-score', 'time')
     return render(request, 'quizes/results.html', {'quiz': quiz,'results': results})
+
+
+def export_persons_to_excel(request, id):
+    quiz = get_object_or_404(Quiz, id=id)
+    persons = quiz.results.all().values()
+
+    df = pd.DataFrame(list(persons))
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename={quiz.title} - testining natijalari.xlsx'
+    df['created_at'] = df['created_at'].apply(lambda x: str(x.strftime('%Y-%m-%d %H:%M:%S')))
+    df['user_id'] = User.objects.filter(id__in=df['user_id']).values_list('full_name', flat=True)
+    del df['quiz_id']
+    df['time'] = df['time'].apply(lambda x: f"{(x//3600):02d}:{(x%3600//60):02d}:{(x%60):02d}")
+    df.rename(columns={'id': 'O\'rin', 'user_id': 'Foydalanuvchi', 'created_at': "Yuborilgan sana", "time": 'Sarflangan vaqt', 'ball': 'To\'plagan ball'}, inplace=True)
+    df.to_excel(response, index=False, engine='openpyxl')
+    
+    return response
