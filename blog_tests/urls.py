@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.utils import timezone
 from django.shortcuts import render
-from users.views import login_view, logout_view,register_view,profile_view
+from users.views import login_view, logout_view,register_view,profile_view, pofile_image_update
 from quizes.models import DTM
 
 def home(request):
@@ -43,6 +43,7 @@ urlpatterns = [
     path('logout/', logout_view),
     path('register/', register_view),
     path('profile/<str:username>/', profile_view),
+    path('profile/<str:username>/update-image/', pofile_image_update),
 ] 
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

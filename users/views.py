@@ -60,3 +60,13 @@ def profile_view(request, username):
     natijalar = Result.objects.filter(user=user)
     dtm_results = DtmResult.objects.filter(user=user)
     return render(request, 'users/profile.html', {'profile': user, 'results': natijalar, 'dtm_results': dtm_results})
+
+def pofile_image_update(requset, username):
+    user = get_object_or_404(User, username=username)
+    if requset.method == 'POST':
+        if 'image' not in requset.FILES:
+            return HttpResponseRedirect('/profile/' + username + '/')
+        user.image = requset.FILES.get('image')
+        user.save()
+        return HttpResponseRedirect('/profile/' + username + '/')
+    return HttpResponseRedirect('/profile/' + username + '/')
