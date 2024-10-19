@@ -50,4 +50,45 @@
         {% endfor %}
     </div>
 </div>
+{% if blog_test.status == 'Tugangan' %}
+<button class="btn btn-warning position-fixed rounded-pill btn-sm" style="bottom: 10px; right: 10px;"  data-bs-toggle="modal" data-bs-target="#showErrorsModal">Xatolarni ko'rish</button>
+<div class="modal fade " tabindex="-1" id="showErrorsModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Testlarga belgilagan variantlaringiz</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% for quiz in blog_test.quizs.all %}
+                    <h4 class="mb-3 text-center">{{quiz.title}}</h4>
+                    {% for question in quiz.questions.all %}
+                    <section id="test-{{question.id}}"
+                        class="{% if forloop.counter != questions.count %}border-bottom{% endif %} mb-3">
+                        <div class="question" style="display: flex;align-items: center;gap: 10px;">
+                            <div>{{forloop.counter}}.</div>
+                            <div>{{question.text|safe}}</div>
+                        </div>
+                        {% if question.variants %}
+                        <div class="p-2">
+                            {% for variant in question.variants.all %}
+                            <div class="form-check">
+                                <input class="form-check-input disabled" disabled type="radio" name="{{question.id}}" id="variant-{{variant.id}}"
+                                    {% if result|is_checked:variant %}checked{% endif %} value="{{variant.id}}" readonly>
+                                <label for="variant-{{variant.id}}">{{variant.text|safe}}</label> {% if variant.is_correct %}<i class="ti-check text-success"></i>{% else %} <i class="ti-close text-danger"></i> {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </section>
+                    {% endfor %}
+                    {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yopish</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

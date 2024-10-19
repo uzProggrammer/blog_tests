@@ -37,7 +37,7 @@
                             {% endfor %}
                         </div>
                         <div class="text-center">
-                            <a href="/tests/{{quiz.id}}" class="btn btn-success" >Testni ishlash</a>
+                            <a href="/tests/{{quiz.id}}/start/" class="btn btn-success" >Testni ishlash</a>
                             {% if quiz|get_results:user %}<a href="/tests/{{quiz.id}}/result/" class="btn btn-success" >Natijam</a>{% endif %}
                             
                             <a href="/tests/{{quiz.id}}/results/" class="btn btn-success" >Natijalar</a>

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}
+    E'tirozlarim
+{% endblock title %}
+
+{% block content %}
+    <div class="card table-responsive mb-3">
+        <table class="table table-bordered table-hover m-0">
+            <thead>
+                <tr>
+                    <th class="p-3">#</th>
+                    <th class="p-3">Test</th>
+                    <th class="p-3">Savol</th>
+                    <th class="p-3">O'rinli</th>
+                    <th class="p-3">Yuborilgan vaqt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for feedback in feedbacks %}
+                <tr>
+                    <td class="p-3">{{feedback.id}}</td>
+                    <td class="p-3">{{feedback.quiz.title}}</td>
+                    <td class="p-3">{{feedback.question.text|safe}}</td>
+                    <td class="p-3">{% if feedback.question.is_true %}<i class="ti-check text-success"></i>{% else %} <i class="ti-close text-danger"></i> {% endif %}</td>
+                    <td class="p-3">{{feedback.created_at|date:"d.m.Y"}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}

@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.http import Http404, HttpResponseRedirect, HttpResponse, JsonResponse
 
 from users.models import User
-from.models import Answer, Question, Quiz, Result, StartTime, Variant
+from.models import Answer, Feedback, Question, Quiz, Result, StartTime, Variant
 import pandas as pd
 
 
@@ -24,37 +24,101 @@ def quiz_list(request):
         raise Http404("Page does not exist")
     return render(request, 'quizes/all.html', {'page_obj': page_obj,'search': search, 'is_page': request.GET.get('page', None)})
 
+def start_quiz_view(request, id):
+    if request.user.is_anonymous:
+        return HttpResponseRedirect(f'/login/?next=/tests/{id}/')
+    quiz = get_object_or_404(Quiz, id=id)
+    start_time = StartTime.objects.create(user=request.user, quiz=quiz, is_ended=False)
+    return HttpResponseRedirect(f'/tests/{id}/')
+
 def get_questions_view(request, id):
     if request.user.is_anonymous:
         return HttpResponseRedirect(f'/login/?next=/tests/{id}/')
     quiz = get_object_or_404(Quiz, id=id)
     questions = quiz.questions.all().order_by('?')
-    start_time,created = StartTime.objects.get_or_create(user=request.user, quiz=quiz, is_ended=False)
+    try:
+        start_time = StartTime.objects.get(user=request.user, quiz=quiz, is_ended=False)
+    except:
+        return HttpResponseRedirect(f'/tests/')
     return render(request, 'quizes/quiz.html', {'quiz': quiz, 'questions': questions, 'start_time': start_time})
 
 def submit_view(request, id):
     if request.user.is_anonymous:
         return HttpResponseRedirect(f'/login/?next=/tests/{id}/')
     quiz = get_object_or_404(Quiz, id=id)
-    start_time = StartTime.objects.get(user=request.user, quiz=quiz, is_ended=False)
+    ball = 0
+    try:
+        start_time = StartTime.objects.get(user=request.user, quiz=quiz, is_ended=False)
+    except:
+        return HttpResponseRedirect('/tests/')
+    result = Result.objects.create(user=request.user, quiz=quiz, score=ball)
+    result.time = (timezone.now() - start_time.date_created).total_seconds()
+    result.save()
     if request.method != 'POST':
         return Http404()
-    ball = 0
-    result = Result.objects.create(user=request.user, quiz=quiz, score=ball)
-    for i,j in request.POST.items():
-        if i=='csrfmiddlewaretoken':
-            continue
+    for question in quiz.questions.all():
         try:
-            question = Question.objects.get(id=i,quiz=quiz)
-            answer = Variant.objects.get(id=j, question=question,quiz=quiz)
+            v = request.POST[str(question.id)]
+            answer = Variant.objects.get(id=v, question=question,quiz=quiz)
+            answer1 = Answer.objects.create(user=request.user, quiz=question, variant=answer, is_correct=answer.is_correct)
+            feedback = Feedback.objects.filter(user=request.user, question=question, quiz=quiz)
+            if feedback.exists():
+                feedback = feedback.last()
+                feedback.answer = answer1
+                feedback.save()
+            result.answers.add(answer1)
+            if answer.is_correct:
+                ball += question.ball
+            
+            c=1;c1=1
+            for k in question.variants.all():
+                if k.is_correct:
+                    answer1.true_variant = "A" if c==1 else "B" if c==2 else "C" if c==3 else "D"
+                if k.id==answer.id:
+                    answer1.chosen_variant = "A" if c1==1 else "B" if c1==2 else "C" if c1==3 else "D"
+                answer1.save()
+                c+=1
+                c1+=1
+                answer1.save()
+            result.answers.add(answer1)
         except:
-            return HttpResponse('Invalid answer')
-        answer1 = Answer.objects.create(user=request.user, quiz=question, variant=answer, is_correct=answer.is_correct)
-        result.answers.add(answer1)
-        if answer.is_correct:
-            ball += question.ball
+            c=1
+            true_variant=''
+            for k in question.variants.all():
+                if k.is_correct:
+                    true_variant = "A" if c==1 else "B" if c==2 else "C" if c==3 else "D"
+                c+=1
+            answer = Answer.objects.create(user=request.user, quiz=question, variant=None, true_variant=true_variant, chosen_variant="Tanlanmagan")
+            result.answers.add(answer)
+
+    # for i,j in request.POST.items():
+    #     if i=='csrfmiddlewaretoken':
+    #         continue
+    #     try:
+    #         question = Question.objects.get(id=i,quiz=quiz)
+    #         answer = Variant.objects.get(id=j, question=question,quiz=quiz)
+    #     except:
+    #         return HttpResponse('Invalid answer')
+    #     answer1 = Answer.objects.create(user=request.user, quiz=question, variant=answer, is_correct=answer.is_correct)
+    #     feedback = Feedback.objects.filter(user=request.user, question=question, quiz=quiz)
+    #     if feedback.exists():
+    #         feedback = feedback.first()
+    #         feedback.answer = answer1
+    #         feedback.save()
+    #     result.answers.add(answer1)
+    #     if answer.is_correct:
+    #         ball += question.ball
+        
+    #     c=1;c1=1
+    #     for k in question.variants.all():
+    #         if k.is_correct:
+    #             answer1.true_variant = "A" if c==1 else "B" if c==2 else "C" if c==3 else "D"
+    #         if k.id==int(j):
+    #             answer1.chosen_variant = "A" if c1==1 else "B" if c1==2 else "C" if c1==3 else "D"
+    #         answer1.save()
+    #         c+=1
+    #         c1+=1
     result.score = ball
-    result.time = (timezone.now() - start_time.date_created).total_seconds()
     result.save()
     start_time.is_ended = True
     start_time.save()
@@ -92,7 +156,7 @@ def results_view(request, id):
 
 def export_persons_to_excel(request, id):
     quiz = get_object_or_404(Quiz, id=id)
-    persons = quiz.results.all().values()
+    persons = quiz.results.all().order_by('-score', 'time').values()
 
     df = pd.DataFrame(list(persons))
 
@@ -106,3 +170,19 @@ def export_persons_to_excel(request, id):
     df.to_excel(response, index=False, engine='openpyxl')
     
     return response
+
+def feedback_view(request, id):
+    if request.user.is_anonymous:
+        return HttpResponseRedirect(f'/login/?next=/tests/{id}/feedback/')
+    quiz = get_object_or_404(Quiz, id=id)
+    if request.method == 'POST':
+        debug = request.POST.get('debug')
+        question = str(request.POST.get('question_id'))
+        if not question or not question.isdigit():
+            return JsonResponse({'status':'error', "msg":'savol topilmadi'})
+        question = get_object_or_404(Question, id=int(question), quiz=quiz)
+        if debug:
+            feedback = Feedback.objects.create(user=request.user, quiz=quiz, text=debug, question=question)
+            return JsonResponse({'status':"ok", 'msg':"Xabar adminga yuborildi"})
+        return HttpResponseRedirect(f'/tests/{id}/')
+    return HttpResponseRedirect(f'/tests/')

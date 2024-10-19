@@ -1,5 +1,5 @@
 import json
-from re import search
+import random
 from django.http import HttpRequest
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -88,7 +88,8 @@ def create_group_api(request: HttpRequest):
     data = json.loads(request.body)
     if 'name' not in data or 'description' not in data:
         return Response({'status': 'error','message': 'Name and description are required fields'})
-    group = Group(name=data['name'], description=data['description'])
+    password = ''.join(random.choices('abcsdfghjklmnpqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ', k=15))
+    group = Group(name=data['name'], description=data['description'], slug=password)
     group.save()
     return Response({'status': 'ok', 'data': GroupSerializer(group).data})
 

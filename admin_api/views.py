@@ -223,8 +223,25 @@ def create_quiz_api(request: HttpRequest):
 def results_api(request: HttpRequest, pk: int):
     quiz = get_object_or_404(Quiz, pk=pk)
     results = quiz.results.all()
-    results_data = ResultSerializer(results, many=True).data
-    return Response({'status': "ok", 'data':results_data})
+    similars_persent = []
+    if 'similar_to' in request.GET:
+        s = request.GET.get('similar_to')
+        if not str(s).isdigit():
+            pass
+        else:
+            s = quiz.results.filter(id=s)
+            if s.exists():
+                s = s.first()
+                similars = s.similar_variants(test=quiz)
+                results = similars[0]
+                similars_persent = similars[1]
+    paginator = PageNumberPagination()
+    paginator.page_size = 10
+    paginated_tests = paginator.paginate_queryset(results, request)
+    pages_count = list(range(1, results.count() // paginator.page_size + (results.count() % paginator.page_size > 0)+1))
+
+    results_data = ResultSerializer(paginated_tests, many=True).data
+    return Response({'status': "ok", 'data':results_data, "pages_count":pages_count, "similars_persent":similars_persent})
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
@@ -233,3 +250,36 @@ def result_api(request: HttpRequest, pk: int, pk1:int):
     result = get_object_or_404(Result, quiz=quiz, pk=pk1)
     result_data = ResultSerializer(result).data
     return Response({'status': "ok", 'data':result_data})
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def delete_results_api(request: HttpRequest, pk: int,):
+    quiz = get_object_or_404(Quiz, pk=pk)
+    try:
+        data = json.loads(request.body)
+    except:
+        return Response({'status':'error', 'message': "Ma'lumotlar to'g'ri kiritilmagan!"})
+    
+    for i in data:
+        r = Result.objects.filter(id=i)
+        if r.exists():
+            r.delete()
+    return Response({'status':'ok', 'message':'Barcha belgilangan natijalar o\'chirildi!'})
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def change_results_api(request: HttpRequest, pk: int,):
+    quiz = get_object_or_404(Quiz, pk=pk)
+    try:
+        data = json.loads(request.body)
+    except:
+        return Response({'status':'error', 'message': "Ma'lumotlar to'g'ri kiritilmagan!"})
+    if 'is_cheater' not in data or 'selecteds' not in data or 'remove_cheater' not in data:
+        return Response({'status':'error', 'message': "Ma'lumotlar to'lliq kiritilmagan!"})
+    for i in data['selecteds']:
+        r = Result.objects.filter(id=i)
+        if r.exists():
+            r=r.first()
+            r.is_cheater = False if data['remove_cheater']==True else data['is_cheater']
+            r.save()
+    return Response({'status':'ok', 'message':'Barcha belgilangan natijalar o\'zgartirildi!'})

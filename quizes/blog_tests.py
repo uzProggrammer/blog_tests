@@ -1,10 +1,14 @@
 from django.utils import timezone
-from django.http import HttpRequest, HttpResponseRedirect, JsonResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.core.paginator import Paginator
+import pandas as pd
 from requests import get
 from quizes.models import DTM, Answer, DtmResult, Question, Result, StartTime, Variant
 from django.db.models import Q
+
+from quizes.templatetags.get_results import get_ball
+from users.models import User
 
 def get_all_blog_tests(request: HttpRequest):
     search = request.GET.get('q', '')
@@ -98,14 +102,14 @@ def post_quiz(request: HttpRequest, pk:int):
         if variant.is_correct:
             result.score += question.ball
         c=1
+        c1=1
         for variant in question.variants.all():
             if variant.is_correct:
-                c+=1
-                answer.true_variant = "A" if c==1 else "B" if c==2 else "C" if c==3 else "D"
-                c-=1
+                answer.true_variant = "A" if c1==1 else "B" if c1==2 else "C" if c1==3 else "D"
             if variant.id == int(j):
                 answer.chosen_variant = "A" if c==1 else "B" if c==2 else "C" if c==3 else "D"
-                c+=1
+            c+=1
+            c1+=1
         answer.save()
     result.save()
     started_time.is_ended = True
@@ -138,3 +142,28 @@ def result_list(request: HttpRequest, pk:int):
         page_number = paginator.num_pages
     page_obj = paginator.get_page(page_number)
     return render(request, 'blog_tests/result_list.html', {'results': results, 'page_obj': page_obj, 'object':paginator, 'blog_test':dtm})
+
+def export_results_to_excel(request: HttpRequest, pk:int):
+    dtm = get_object_or_404(DTM, pk=pk)
+    results = DtmResult.objects.filter(dtm=dtm).order_by('-score','-time')
+    print(results)
+    data = []
+    i=1
+    for result in results:
+        data.append({
+            'O\'rin': i,
+            'O\'quvchi': result.user.full_name,
+        })
+        for quiz in dtm.quizs.all():
+            data[i-1][quiz.title] = get_ball(result, quiz)
+        data[i-1]["Yuborilgan sana"] = result.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        data[i-1]["Sarflangan vaqt"] = result.time_token()
+        data[i-1]["To'plagan ball"] = result.score
+        i+=1
+    df = pd.DataFrame(data)
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename={dtm.title} - testining natijalari.xlsx'
+
+    df.to_excel(response, index=False, engine='openpyxl')
+    return response
+    

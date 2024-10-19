@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 
+
+{% load get_results %}
+
 {% block title %}
     Natijam
 {% endblock title %}
@@ -42,7 +45,7 @@
                 <h2 class="mb-4">Belgilagan javoblaringiz:</h2>
                 <div>
                     {% for answer in result.answers.all %}
-                        <button data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{% if answer.is_correct %}To'gri{% else %}Noto'gri{% endif %}" class="btn btn-lg me-3 mb-3 {% if answer.is_correct %}btn-success{% else %}btn-danger{% endif %}">{{forloop.counter}}</button>
+                        <button data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{% if answer.is_correct %}To'gri{% else %}Noto'gri{% endif %}" class="btn btn-sm mb-1 {% if answer.is_correct %}btn-success{% else %}btn-danger{% endif %}">{{forloop.counter}} - {{answer.chosen_variant}}{% if not answer.is_correct %}({{answer.true_variant}}){% endif %}</button>
                     {% endfor %}
                 </div>
             </div>

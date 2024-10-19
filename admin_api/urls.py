@@ -3,6 +3,7 @@ from admin_api import views
 from admin_api import users_api
 from admin_api import groups_api
 from admin_api import blog_tests
+from admin_api import fedbacks
 
 urlpatterns = [
     path('login/', views.login_api),
@@ -18,6 +19,8 @@ urlpatterns = [
     path('tests/<int:pk>/results/', views.results_api),
     path('tests/<int:pk>/results/<int:pk1>/', views.result_api),
     path('tests/<int:pk>/upload-docx/', views.create_questions_with_docx),
+    path('tests/<int:pk>/results/delete/', views.delete_results_api),
+    path('tests/<int:pk>/results/change/', views.change_results_api),
 
 
     path('users/', users_api.all_users_api),
@@ -46,4 +49,12 @@ urlpatterns = [
     path('blog-tests/<int:pk>/create-scince/', blog_tests.create_quiz),
     path('blog-tests/get-groups/', blog_tests.get_groups),
     path('blog-tests/create/', blog_tests.create_dtm),
+    path('blog-tests/<int:pk>/results/change/', blog_tests.change_results_api),
+    path('blog-tests/<int:pk>/results/delete/', blog_tests.delete_results_api),
+
+
+    
+    path('feedbacks/', fedbacks.all_fedbacks_api),
+    path('feedbacks/<int:id>/', fedbacks.get_fedback_api),
+    path('feedbacks/<int:id>/change/', fedbacks.set_is_true_api),
 ]

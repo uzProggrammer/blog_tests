@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from django.utils import timezone
 from django.shortcuts import render
 from users.models import MessageForAdmin
-from users.views import login_view, logout_view,register_view,profile_view, pofile_image_update, send_message_admin,read_all_messages
+from users.views import login_view, logout_view,register_view,profile_view, pofile_image_update, send_message_admin,read_all_messages, my_feedbacks
 from quizes.models import DTM
 
 def home(request):
@@ -53,6 +53,7 @@ urlpatterns = [
     path('profile/<str:username>/update-image/', pofile_image_update),
     path('send-message/', send_message_admin),
     path('read-messages/', read_all_messages),
+    path('my-feedbacks/', my_feedbacks),
 ] 
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

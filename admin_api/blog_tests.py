@@ -68,7 +68,19 @@ def delete_question(request: HttpRequest, pk: int):
 def get_results(request: HttpRequest, pk:int):
     quiz = get_object_or_404(DTM, pk=pk)
     results = DtmResult.objects.all().order_by('place')
-
+    print(request.GET)
+    similars_persent = []
+    if 'similar_to' in request.GET:
+        s = request.GET.get('similar_to')
+        if not str(s).isdigit():
+            pass
+        else:
+            s = quiz.results.filter(id=s)
+            if s.exists():
+                s = s.first()
+                similars = s.similar_variants(test=quiz)
+                results = similars[0]
+                similars_persent = similars[1]
     paginator = PageNumberPagination()
     paginator.page_size = 15
     results_paginated = paginator.paginate_queryset(results, request)
@@ -77,7 +89,7 @@ def get_results(request: HttpRequest, pk:int):
     data1 = DTMSerializer(quiz).data
 
     pages_count = list(range(1, results.count() // paginator.page_size + (results.count() % paginator.page_size > 0)+1))
-    return Response({"status":'ok', 'data':data,'dtm':data1, 'pages_count':pages_count})    
+    return Response({"status":'ok', 'data':data,'dtm':data1, 'pages_count':pages_count, 'similars_persent':similars_persent})    
 
 
 @api_view(['GET'])
@@ -179,3 +191,38 @@ def create_dtm(request: HttpRequest):
     dtm.end_date = dtm.start_date + timezone.timedelta(days=1)
     dtm.save()
     return Response({'status': 'ok', 'data': 'Test qo\'shildi!', 'id':dtm.id})
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def change_results_api(request: HttpRequest, pk: int,):
+    quiz = get_object_or_404(DTM, pk=pk)
+    try:
+        data = json.loads(request.body)
+    except:
+        return Response({'status':'error', 'message': "Ma'lumotlar to'g'ri kiritilmagan!"})
+    if 'is_cheater' not in data or 'selecteds' not in data or 'remove_cheater' not in data:
+        return Response({'status':'error', 'message': "Ma'lumotlar to'lliq kiritilmagan!"})
+    print(type(data['selecteds']))
+    for i in data['selecteds']:
+        r = DtmResult.objects.filter(id=i)
+        if r.exists():
+            r=r.first()
+            r.is_cheater = False if data['remove_cheater']==True else data['is_cheater']
+            r.save()
+    return Response({'status':'ok', 'message':'Barcha belgilangan natijalar o\'zgartirildi!'})
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def delete_results_api(request: HttpRequest, pk: int,):
+    quiz = get_object_or_404(DTM, pk=pk)
+    try:
+        data = json.loads(request.body)
+    except:
+        return Response({'status':'error', 'message': "Ma'lumotlar to'g'ri kiritilmagan!"})
+    
+    for i in data:
+        r = DtmResult.objects.filter(id=i)
+        if r.exists():
+            r.delete()
+    return Response({'status':'ok', 'message':'Barcha belgilangan natijalar o\'chirildi!'})

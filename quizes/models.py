@@ -14,6 +14,9 @@ class Quiz(models.Model):
     scince = models.TextField(max_length=200)
     docx_file = models.FileField(upload_to='quizes/docx_files', null=True, blank=True)
 
+    def get_questions_random(self):
+        return self.questions.all().order_by('?')
+
     def get_scinces(self):
         return self.scince.split()
     def __str__(self):
@@ -25,6 +28,9 @@ class Question(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     ball = models.FloatField(default=0)
 
+
+    def get_random_variants(self):
+        return self.variants.all().order_by('?')
 
     def __str__(self):
         return self.text
@@ -43,7 +49,7 @@ class Variant(models.Model):
 
 class Answer(models.Model):
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='answers')
-    variant = models.ForeignKey(Variant, on_delete=models.CASCADE, related_name='answers')
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE, related_name='answers', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     quiz = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
     is_correct = models.BooleanField(default=False)
@@ -54,6 +60,8 @@ class Answer(models.Model):
     chosen_variant = models.CharField(max_length=200, null=True, blank=True)
     true_variant = models.CharField(max_length=200, null=True, blank=True)
     
+    with_feedback = models.BooleanField(default=False)
+
     def __str__(self):
         return self.user.username
     
@@ -64,6 +72,8 @@ class Result(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     answers = models.ManyToManyField(Answer, related_name='results')
     time = models.IntegerField(null=True, blank=True)
+
+    is_cheater = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
@@ -76,6 +86,27 @@ class Result(models.Model):
     
     def time_token(self):
         return f"{(self.time//3600):02d}:{(self.time%3600//60):02d}:{(self.time%60):02d}"
+    
+    def get_answers_as_list(self):
+        return [i.chosen_variant for i in self.answers.all()]
+    
+    def similar_variants(self, test, similar_value=75):
+        data = test.results.exclude(id=self.id)
+        data1 = []
+        for result in data:
+            similars = 0
+            for i,answer in enumerate(self.answers.all()):
+                for j,answer1 in enumerate(result.answers.all()):
+                    if i==j:
+                        if answer.chosen_variant==answer1.chosen_variant:
+                            similars+=1
+            similars_percent = (similars/self.answers.count())*100
+            if similars_percent<similar_value:
+                data = data.exclude(id=result.id)
+            else:
+                data1.append(similars_percent)
+        return data, data1
+
     
 class DTM(models.Model):
     quizs = models.ManyToManyField(Quiz, related_name='dtms')
@@ -110,6 +141,7 @@ class DtmResult(models.Model):
     
     place = models.IntegerField(null=True, blank=True)
 
+    is_cheater = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
@@ -122,6 +154,23 @@ class DtmResult(models.Model):
     
     def time_token(self):
         return f"{(self.time//3600):02d}:{(self.time%3600//60):02d}:{(self.time%60):02d}"
+    
+    def similar_variants(self, test, similar_value=75):
+        data = test.results.all()
+        data1 = []
+        for result in data:
+            similars = 0
+            for i,answer in enumerate(self.answers.all()):
+                for j,answer1 in enumerate(result.answers.all()):
+                    if i==j:
+                        if answer.chosen_variant==answer1.chosen_variant:
+                            similars+=1
+            similars_percent = (similars/self.answers.count())*100
+            if similars_percent<similar_value:
+                data = data.exclude(id=result.id)
+            else:
+                data1.append(similars_percent)
+        return data, data1
 
 
 class StartTime(models.Model):
@@ -130,3 +179,16 @@ class StartTime(models.Model):
     date_created = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='start_times')
     is_ended = models.BooleanField(default=False)
+
+
+class Feedback(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedbacks')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='feedbacks', null=True, blank=True)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='feedbacks', null=True, blank=True)
+    blog_test = models.ForeignKey(DTM, on_delete=models.CASCADE, related_name='feedbacks', null=True, blank=True)
+    is_true = models.BooleanField(default=False)
+
+    answer = models.ForeignKey(Answer, on_delete=models.CASCADE, related_name='feedbacks', null=True, blank=True)
+    send_ball = models.BooleanField(default=False)

@@ -1,5 +1,5 @@
 from admin_api.models import AdminLog
-from quizes.models import DTM, Answer, DtmResult, Question, Quiz, Result, Variant
+from quizes.models import DTM, Answer, DtmResult, Feedback, Question, Quiz, Result, Variant
 from users.models import Group, User
 from rest_framework import serializers
 
@@ -81,7 +81,7 @@ class ResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Result
-        fields = ['id', 'user', 'quiz', 'score', 'created_at', 'time_token', 'correct_answers', 'wrong_answers', 'answers']
+        fields = ['id', 'user', 'quiz', 'score', 'created_at', 'time_token', 'correct_answers', 'wrong_answers', 'answers', 'is_cheater']
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -144,7 +144,7 @@ class DTMResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DtmResult
-        fields = ['id','user','score','created_at','correct_answers', 'wrong_answers', 'time_token', 'place', 'answers', 'quizs', 'dtm']
+        fields = ['id','user','score','created_at','correct_answers', 'wrong_answers', 'time_token', 'place', 'answers', 'quizs', 'dtm', 'is_cheater']
 
 class GroupForDTMSerializer(serializers.ModelSerializer):
     value = serializers.IntegerField(source='id')
@@ -153,3 +153,34 @@ class GroupForDTMSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['value', 'label']
+
+
+class TestWithOutVariantsSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    text = serializers.CharField()
+    created_at = serializers.DateTimeField(format='%Y-%m-%d')
+    ball = serializers.FloatField()
+
+    class Meta:
+        model = Question
+        fields = ['id', 'text', 'created_at', 'ball',]
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    question = TestWithOutVariantsSerializer()
+    created_at = serializers.DateTimeField(format='%Y-%m-%d')
+    quiz = QuizSerializer()
+
+    class Meta:
+        model = Feedback
+        fields = ('id', 'user', 'text', 'created_at', 'question', 'quiz', 'is_true')
+
+class FeedbackWithVariantsSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    question = TestSerializer()
+    created_at = serializers.DateTimeField(format='%Y-%m-%d')
+    quiz = QuizSerializer()
+
+    class Meta:
+        model = Feedback
+        fields = ('id', 'user', 'text', 'created_at', 'question', 'quiz', 'is_true', 'send_ball')

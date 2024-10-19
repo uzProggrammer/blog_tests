@@ -2,7 +2,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth import authenticate, login, logout
 
-from quizes.models import DtmResult, Result
+from quizes.models import DtmResult, Feedback, Result
 from users.models import MessageForAdmin, User
 
 from django.views.decorators.csrf import csrf_exempt
@@ -101,3 +101,7 @@ def read_all_messages(request):
         message.is_read = True
         message.save()
     return HttpResponseRedirect('/')
+
+def my_feedbacks(request):
+    feedbacks = Feedback.objects.filter(user=request.user)
+    return render(request, 'users/my_feedbacks.html', {'feedbacks': feedbacks})

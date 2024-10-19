@@ -10,14 +10,21 @@
     <div class="row">
         <div class="col-md-12">
             <div class="card p-3">
-                <h5 class="mb-2">Natijalar</h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4>Natijalar</h4>
+                    <a href="/blog-tests/{{blog_test.id}}/results-as-excel/" download class="btn btn-primary">Yuklab olish</a>
+                </div>
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
-                            <th>O'rin</th>
-                            <th>O'quvchi</th>
-                            <th>To'plagan ball</th>
-                            <th>Sarflagan vaqt</th>
+                            <th class="p-3">O'rin</th>
+                            <th class="p-3">O'quvchi</th>
+                            {% for quiz in blog_test.quizs.all %}
+                            <th class="p-3">{{ quiz.title }}</th>
+                            {% endfor %}
+                            <th class="p-3">Sarflangan vaqt</th>
+                            <th class="p-3">Ball</th>
+                            <th class="p-3">To'gri javoblar</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -25,8 +32,12 @@
                             <tr style="cursor: pointer;" onclick="location.href='/blog-tests/{{blog_test.id}}/result/{{result.id}}';">
                                 <td>{% set_score result forloop.counter page_obj.number %}</td>
                                 <td>{{ result.user.get_full_name }}</td>
-                                <td>{{ result.score }}</td>
+                                {% for quiz in blog_test.quizs.all %}
+                                <td class="p-3">{{result|get_ball:quiz}}</td>
+                                {% endfor %}
                                 <td>{{ result.time_token }}</td>
+                                <td>{{ result.score }}</td>
+                                <td>{{ result.correct_answers }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

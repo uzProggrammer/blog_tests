@@ -48,13 +48,13 @@ def format_result(result: Result, last: bool = False):
 @register.filter
 def get_trues(result: DtmResult, question: Question):
     dtm = result.dtm
-    answers = question.answers.all().filter(dtm=dtm, is_correct=True).count()
+    answers = question.answers.filter(dtm=dtm, is_correct=True, user=result.user).count()
     return answers
 
 @register.filter
 def get_ball(result: DtmResult, question: Question):
     dtm = result.dtm
-    answers = question.answers.filter(dtm=dtm, is_correct=True)
+    answers = question.answers.filter(dtm=dtm, is_correct=True, user=result.user)
     answers_scope = answers.aggregate(score=Sum('quiz__ball'))
     return answers_scope['score'] or 0
 
@@ -87,3 +87,10 @@ def is_ended(dtm: DTM, user: User):
     if not result:
         return False
     return True
+
+@register.filter
+def is_checked(result: DtmResult, variant: int):
+    answer = result.answers.filter(variant=variant).first()
+    if answer:
+        return True
+    return False
