@@ -57,10 +57,12 @@
                 {% if question.variants %}
                 <div class="p-2">
                     {% for variant in question.variants.all %}
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="{{question.id}}" id="variant-{{variant.id}}"
+                    <div>
+                        <label class="form-check-label p-2" for="variant-{{variant.id}}"  style="border: 1px solid #ccc;border-radius: 5px;display: block;margin: 5px;padding: 10px;">
+                            <input class="form-check-input" type="radio" name="{{question.id}}" id="variant-{{variant.id}}"
                             required value="{{variant.id}}">
-                        <label class="form-check-label" for="variant-{{variant.id}}">{{variant.text|safe}}</label>
+                            {{variant.text|safe}}
+                        </label>
                     </div>
                     {% endfor %}
                 </div>

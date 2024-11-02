@@ -2,7 +2,6 @@ import json
 import os
 import re
 from django.http import HttpRequest
-from numpy import delete
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
@@ -10,7 +9,6 @@ from rest_framework.permissions import IsAdminUser, AllowAny
 from admin_api.docx_complie import to_dict_question
 from admin_api.models import AdminLog
 from quizes.models import Question, Quiz, Result, Variant
-from users import admin
 from users.models import User
 from .serializers import QuizSerializer, ResultSerializer, TestSerializer, UserSerializer, AdminLogUserSerializer
 from django.db.models import Q
@@ -93,7 +91,7 @@ def create_questions_with_docx(request: HttpRequest, pk: int):
     try:
         from docx import Document
     except ImportError:
-        return Response({'status':"error", 'error':"Docx modulu topilmadi!"})
+        return Response({'status':"error", 'error':"Docx moduli topilmadi!"})
     quiz.docx_file = file
     quiz.save()
     try:
@@ -122,6 +120,45 @@ def create_questions_with_docx(request: HttpRequest, pk: int):
             j = chr(ord(j) + 1)
         i+=1
 
+    os.remove(quiz.docx_file.path)
+    quiz.docx_file = None
+    quiz.save()
+    return Response({'status': "ok"})
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def create_questions_with_pdf(request: HttpRequest, pk: int):
+    quiz = get_object_or_404(Quiz, pk=pk)
+    if 'file' not in request.FILES:
+        return Response({'status':"error", 'error':"Iltimos faylni tanlang!"})
+    file = request.FILES['file']
+    if not file.name.endswith('.pdf'):
+        return Response({'status':"error", 'error':"Fayl formati noto'g'ri!"})
+    try:
+        from admin_api.pdf_complie import html_to_json
+    except ImportError:
+        return Response({'status':"error", 'error':"PDF moduli topilmadi!"})
+    quiz.docx_file = file
+    quiz.save()
+    try:
+        data = html_to_json(quiz.docx_file.path)
+    except Exception as e:
+        print(e)
+        return Response({'status':"error", 'error':"Iltimos testlarni shablonga moslashtirilganiga ishonch hosil qiling!"})
+    i=0
+    if data:
+        quiz.questions.all().delete()
+    for tttt in data:
+        test = Question.objects.create(
+            quiz=quiz,
+            text=tttt['test'],
+            ball=2
+        )
+        v = "A"
+        for variant in tttt['variants']:
+            varaint1 = Variant.objects.create(question=test, text=variant, quiz=quiz, is_correct=v==tttt['true_answer'])
+            v = chr(ord(v) + 1)
     os.remove(quiz.docx_file.path)
     quiz.docx_file = None
     quiz.save()

@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from django.utils import timezone
 from django.shortcuts import render
 from users.models import MessageForAdmin
-from users.views import login_view, logout_view,register_view,profile_view, pofile_image_update, send_message_admin,read_all_messages, my_feedbacks
+from users.views import login_view, logout_view,register_view,profile_view, pofile_image_update, send_message_admin,read_all_messages, my_feedbacks,informations_view, select_group_view
 from quizes.models import DTM
 
 def home(request):
@@ -54,6 +54,8 @@ urlpatterns = [
     path('send-message/', send_message_admin),
     path('read-messages/', read_all_messages),
     path('my-feedbacks/', my_feedbacks),
+    path('informations/', informations_view),
+    path('select-group/', select_group_view),
 ] 
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

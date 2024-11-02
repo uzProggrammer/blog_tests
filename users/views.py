@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.contrib.auth import authenticate, login, logout
 
 from quizes.models import DtmResult, Feedback, Result
-from users.models import MessageForAdmin, User
+from users.models import ChatWithAdmin, Group, MessageForAdmin, User
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -33,18 +33,54 @@ def register_view(request):
         data = request.POST
         username = data.get('username')
         password = data.get('password')
-        full_name = data.get('full_name')
-
+        email = data.get('email')
+        if not username or not password or not email:
+            return render(request, 'users/register.html', {'error': 'Ma\'lumotlar to\'liq to\'ldirilmagan', 'username': username,  'email':email})
         if User.objects.filter(username=username).exists():
-            return render(request, 'users/register.html', {'error': 'Bu foydalanuvchi allaqachon ro\'yxatdan o\'tgan', 'username': username, 'full_name': full_name})
+            return render(request, 'users/register.html', {'error': 'Bu foydalanuvchi allaqachon ro\'yxatdan o\'tgan', 'username': username,  'email':email})
         else:
-            user = User.objects.create(username=username, full_name=full_name)
+            user = User.objects.create(username=username, email=email)
             user.set_password(password)
             user.save()
             login(request, user)
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/informations/')
     return render(request, 'users/register.html')
 
+def informations_view(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect('/login/')
+    if request.method == 'POST':
+        data = request.FILES
+        data1 = request.POST
+        if 'image' not in data or 'full_name' not in data1 or 'date_brith' not in data1 or 'jins' not in data1 or  'full_name' not in data1:
+            return render(request, 'users/ulashish.html', {'error': 'Ma\'lumotlar to\'liq to\'ldirilmagan', 'full_name': data1.get('full_name'), 'date_brith': data1.get('date_brith'), 'jins': data1.get('jins')})
+        user = request.user
+        image = data.get('image')
+        full_name = data1.get('full_name')
+        date_brith = data1.get('date_brith')
+        jins = data1.get('jins')
+        full_name = data1.get('full_name')
+        user.image = image
+        user.full_name = full_name
+        user.date_brith = date_brith
+        user.jins = jins
+        user.save()
+        return HttpResponseRedirect('/select-group/')
+    return render(request, 'users/informations.html')
+
+def select_group_view(request):
+    user = request.user
+    if not user.is_authenticated:
+        return HttpResponseRedirect('/login/')
+    if request.method == 'POST':
+        data = request.POST
+        group = data.get('group')
+        group = get_object_or_404(Group, id=group)
+        group.students.add(user)
+        group.save()
+        return HttpResponseRedirect('/profile/' + user.username + '/')
+    groups = Group.objects.all()
+    return render(request, 'users/select_group.html', {'groups': groups, 'user': user})
 
 def profile_view(request, username):
     user = get_object_or_404(User, username=username)
@@ -78,9 +114,14 @@ def send_message_admin(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     if request.method == 'POST':
+        chat, created = ChatWithAdmin.objects.get_or_create(user=request.user)
         data = request.POST
         message = data.get('message')
         message = MessageForAdmin.objects.create(message=message, user=request.user)
+        chat.messages.add(message)
+        chat.created_at = message.created_at
+        chat.last_message = message.message
+        chat.save()
         data = {
             "user":{
                 'image': request.user.image.url if request.user.image else '',

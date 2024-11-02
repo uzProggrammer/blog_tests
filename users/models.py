@@ -28,6 +28,19 @@ class Group(models.Model):
     def __str__(self):
         return self.name
     
+class ChatWithAdmin(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chats_with_admin')
+    messages = models.ManyToManyField('MessageForAdmin', related_name='chats_with_admin')
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_message = models.TextField(null=True, blank=True)
+    class Meta:
+        verbose_name = 'Admin chat'
+        verbose_name_plural = 'Admin chatlar'
+
+    def __str__(self):
+        return self.user.full_name
+    
+    
 class MessageForAdmin(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_for_admin')
     message = models.TextField()

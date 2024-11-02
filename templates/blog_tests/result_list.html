@@ -31,7 +31,7 @@
                         {% for result in page_obj %}
                             <tr style="cursor: pointer;" onclick="location.href='/blog-tests/{{blog_test.id}}/result/{{result.id}}';">
                                 <td>{% set_score result forloop.counter page_obj.number %}</td>
-                                <td>{{ result.user.get_full_name }}</td>
+                                <td>{{ result.user.full_name }}</td>
                                 {% for quiz in blog_test.quizs.all %}
                                 <td class="p-3">{{result|get_ball:quiz}}</td>
                                 {% endfor %}

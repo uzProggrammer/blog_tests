@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma'lumotlaringiz</title>
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+    <form method="post" enctype="multipart/form-data" class="py-3 py-md-5">
+        <div class="container">
+            <div class="d-flex justify-content-md-center align-items-center">
+                <div class="col-12 col-md-11 col-lg-8 col-xl-7 col-xxl-6">
+                    <div class="bg-white p-4 p-md-5 rounded shadow-sm">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-5">
+                                    <h3>Ma'lumotlaringiz</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div>{% csrf_token %}
+                            <div class="row gy-3 gy-md-4 overflow-hidden">
+                                <div class="col-12">
+                                    <label for="image" class="form-label">Profil rasmingiz</label>
+                                    <div id="helpText" style="width: 100%;height: auto;text-align: center;cursor: pointer;user-select: none;border: 1px solid #000000;padding: 10px;border-radius: 5px;" onclick="document.getElementById('image').click()">Rasm Yuklang</div>
+                                    <img id="myImg" alt="Profil rasmingiz" style="max-width: 100%;height: auto;display: none;">
+                                    <input onchange="document.getElementById('myImg').src = window.URL.createObjectURL(this.files[0]);document.getElementById('myImg').style.display = 'block';document.getElementById('helpText').style.display = 'none';" type="file" hidden class="form-control" name="image" id="image"
+                                        placeholder="Rasm yuklang" accept="image/*">
+                                </div>
+                                <div class="col-12">
+                                    <label for="full_name" class="form-label">Ism familyangiz <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="full_name" id="full_name" value="{{username}}"
+                                        placeholder="Ism familyangizni kiriting!" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="date_birth" class="form-label">Tug'ilgan kuningiz <span
+                                            class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" name="date_brith" id="date_brith" value="{{date_birth}}"
+                                        placeholder="Tug'ilgan kuningizni kiriting!" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="jins" class="form-label">Jins <span
+                                            class="text-danger">*</span></label>
+                                    <select name="jins" class="form-select" id="jins">
+                                        <option value="Erkak">Erkak</option>
+                                        <option value="Ayol">Ayol</option>
+                                    </select>
+                                </div>
+                                {% if error %}
+                                <div class="col-12">
+                                    <div class="text-danger">
+                                        {{error}}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                <div class="col-12">
+                                    <div class="d-grid">
+                                        <button class="btn btn-lg btn-primary" type="submit">Davom etish</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</body>
+
+</html>

@@ -4,6 +4,7 @@ from admin_api import users_api
 from admin_api import groups_api
 from admin_api import blog_tests
 from admin_api import fedbacks
+from admin_api import message_admin
 
 urlpatterns = [
     path('login/', views.login_api),
@@ -19,6 +20,7 @@ urlpatterns = [
     path('tests/<int:pk>/results/', views.results_api),
     path('tests/<int:pk>/results/<int:pk1>/', views.result_api),
     path('tests/<int:pk>/upload-docx/', views.create_questions_with_docx),
+    path('tests/<int:pk>/upload-pdf/', views.create_questions_with_pdf),
     path('tests/<int:pk>/results/delete/', views.delete_results_api),
     path('tests/<int:pk>/results/change/', views.change_results_api),
 
@@ -57,4 +59,9 @@ urlpatterns = [
     path('feedbacks/', fedbacks.all_fedbacks_api),
     path('feedbacks/<int:id>/', fedbacks.get_fedback_api),
     path('feedbacks/<int:id>/change/', fedbacks.set_is_true_api),
+
+    
+    path('messages/', message_admin.all_messages_api),
+    path('messages/<int:pk>/', message_admin.get_chat_api),
+    path('messages/<int:pk>/send-message/', message_admin.send_message_api),
 ]

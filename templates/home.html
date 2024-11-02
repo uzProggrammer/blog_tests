@@ -60,11 +60,9 @@
         </table>
     </div>
 </div>
-
-{% comment %}
+{% if not user.is_staff %}
 {% include 'chat_bot.html' %}
-{% endcomment %}
-
+{% endif %}
 {% endif %}
 {% endblock content %}
 

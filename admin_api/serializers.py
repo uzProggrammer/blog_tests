@@ -1,6 +1,6 @@
 from admin_api.models import AdminLog
 from quizes.models import DTM, Answer, DtmResult, Feedback, Question, Quiz, Result, Variant
-from users.models import Group, User
+from users.models import ChatWithAdmin, Group, MessageForAdmin, User
 from rest_framework import serializers
 
 
@@ -184,3 +184,21 @@ class FeedbackWithVariantsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = ('id', 'user', 'text', 'created_at', 'question', 'quiz', 'is_true', 'send_ball')
+
+class MessageForAdminSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    created_at = serializers.DateTimeField(format='%Y-%m-%d')
+    user1 = UserSerializer()
+
+    class Meta:
+        model = MessageForAdmin
+        fields = ("user","message", "created_at", 'is_read', "is_admin_message", 'user1')
+
+class ChatWithAdminSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    created_at = serializers.DateTimeField(format='%Y-%m-%d')
+    messages = MessageForAdminSerializer(many=True)
+
+    class Meta:
+        model = ChatWithAdmin
+        fields = ("id", "user", "created_at", "messages", 'last_message')

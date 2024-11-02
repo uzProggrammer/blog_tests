@@ -28,7 +28,7 @@ def start_quiz_view(request, id):
     if request.user.is_anonymous:
         return HttpResponseRedirect(f'/login/?next=/tests/{id}/')
     quiz = get_object_or_404(Quiz, id=id)
-    start_time = StartTime.objects.create(user=request.user, quiz=quiz, is_ended=False)
+    start_time, _ = StartTime.objects.get_or_create(user=request.user, quiz=quiz, is_ended=False)
     return HttpResponseRedirect(f'/tests/{id}/')
 
 def get_questions_view(request, id):

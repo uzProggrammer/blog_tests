@@ -14,7 +14,7 @@
 
     #chat-circle {
         position: fixed;
-        bottom: 50px;
+        bottom: 80px;
         right: 50px;
         background: #5A5EB9;
         width: 80px;
@@ -53,12 +53,13 @@
         background: #efefef;
         position: fixed;
         right: 30px;
-        bottom: 50px;
+        bottom: 70px;
         width: 350px;
         max-width: 85vw;
         max-height: 100vh;
         border-radius: 5px;
         box-shadow: 0px 5px 35px 9px #ccc;
+        z-index: 999999999999999999999 !important;
     }
 
     .chat-box-toggle {
@@ -344,7 +345,8 @@
     </div>
 </div>
     `;
-
+            let audio = new Audio("/static/sounds/message-send.mp3")
+            audio.play()
             $(".chat-logs").append(str);
             $("#cm-msg-" + id).hide().fadeIn(300);
             if (type == 'self') {
